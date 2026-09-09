@@ -1,0 +1,15 @@
+Dear ${TITLE:-Mx.} ${NAME},
+
+thank you for taking the time to talk ${WHEN}. I have been reflecting on our
+conversation about ${TOPIC} and wanted to follow up with the details I promised.
+
+[the details go here]
+
+If anything is unclear or you would like to talk it through again, just reply to
+this email — I am happy to help.
+
+Best regards,
+Your Name
+
+--
+https://example.com | you@example.com

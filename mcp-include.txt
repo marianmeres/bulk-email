@@ -1,0 +1,10 @@
+Folder-driven, idempotent bulk email for small personal outreach lists (single digits to
+low tens of recipients). A campaign is a directory of plain-text files: subject.txt,
+body.txt (optional body.html), recipients.csv (every column is a template variable), .env
+with SMTP settings, and a tool-written log.jsonl ledger. Sends serially through
+@marianmeres/send-email with a jittered delay; templates via @marianmeres/interpolate with
+strict variables (a blank ${NAME} blocks the row). Re-runs never resend a delivered message;
+failures are retried up to MAX_ATTEMPTS; interrupted sends surface as "unknown" for a human
+to resolve. CLI: send | preview | status | verify, with a live status line, confirmation
+prompt, --dry-run, --only, --limit. Library core is runtime-agnostic (npm); directory
+helpers and CLI are Deno/JSR.
