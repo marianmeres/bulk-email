@@ -145,14 +145,15 @@ Pure mapping from env-shaped values to [`CampaignSettings`](#campaignsettings).
 | `BCC`               | `bcc`              | —       |
 | `DELAY_MS`          | `delayMs`          | `10000` |
 | `MAX_ATTEMPTS`      | `maxAttempts`      | `3`     |
-| `PREVENT_THREADING` | `preventThreading` | off     |
+| `PREVENT_THREADING` | `preventThreading` | `true`  |
 
 Blank values count as unset. `PREVENT_THREADING` is read by
 [`@marianmeres/parse-boolean`](https://jsr.io/@marianmeres/parse-boolean) in
 strict mode (`true`/`yes`/`on`/`1`, `false`/`no`/`off`/`0`, …);
-`preventThreading` is present only when on. **Throws** `ConfigError` on a
-non-integer `DELAY_MS` (must be ≥ 0) or `MAX_ATTEMPTS` (must be ≥ 1), or a
-`PREVENT_THREADING` value parse-boolean does not recognize.
+`preventThreading` is always present in the result, and defaults to `true`.
+**Throws** `ConfigError` on a non-integer `DELAY_MS` (must be ≥ 0) or
+`MAX_ATTEMPTS` (must be ≥ 1), or a `PREVENT_THREADING` value parse-boolean does
+not recognize.
 
 ---
 
@@ -210,8 +211,8 @@ The serial send loop.
 3. Per recipient: append `sending` → `transport.send()` → append `sent` or
    `error` → emit event → wait `delayMs ± 20 %` unless last / aborted / dry run.
 
-**Threading:** with `settings.preventThreading`, every `transport.send()` also
-gets `providerOptions: { references: "<uuid@sender-domain>", headers: { "X-Entity-Ref-ID": uuid } }`,
+**Threading:** unless `settings.preventThreading === false` (omitted counts as
+on — it is the default), every `transport.send()` also gets `providerOptions: { references: "<uuid@sender-domain>", headers: { "X-Entity-Ref-ID": uuid } }`,
 with a fresh UUID per send (a retry gets new values). A `References` value that
 matches no real message is Google's documented way to keep same-subject messages
 out of one Gmail conversation; `X-Entity-Ref-ID` is the widely used undocumented
@@ -360,7 +361,7 @@ interface CampaignSettings {
 	from?: string; // required to send
 	replyTo?: string;
 	bcc?: string;
-	preventThreading?: boolean; // unique References + X-Entity-Ref-ID per send
+	preventThreading?: boolean; // unique References + X-Entity-Ref-ID per send; default on (omitted = on)
 	delayMs: number; // default 10000
 	maxAttempts: number; // default 3
 }
@@ -551,7 +552,7 @@ interface CliIo {
 
 ### `DEFAULT_SETTINGS`
 
-`{ delayMs: 10000, maxAttempts: 3 }` (frozen).
+`{ delayMs: 10000, maxAttempts: 3, preventThreading: true }` (frozen).
 
 ---
 
@@ -591,10 +592,10 @@ calls `Deno.exit` except through the injectable `exit` on a second Ctrl-C).
 
 ### `preview` flags
 
-| Flag          | Effect                                                                       |
-| ------------- | ---------------------------------------------------------------------------- |
-| `--to <addr>` | Recipient to render (default: the first CSV row).                            |
-| `--json`      | `{ ok, status, emptyVariables?, preventThreading?, message: RenderedEmail }` |
+| Flag          | Effect                                                                      |
+| ------------- | --------------------------------------------------------------------------- |
+| `--to <addr>` | Recipient to render (default: the first CSV row).                           |
+| `--json`      | `{ ok, status, emptyVariables?, preventThreading, message: RenderedEmail }` |
 
 ### Behaviour
 

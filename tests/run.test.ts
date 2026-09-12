@@ -175,12 +175,17 @@ Deno.test("runPlan: html / replyTo / bcc are forwarded when present", async () =
 	const transport = createMockTransport();
 	await runPlan(plan, c.templates, {
 		transport,
-		settings: { ...SETTINGS, replyTo: "r@x.com", bcc: "me@x.com" },
+		settings: {
+			...SETTINGS,
+			replyTo: "r@x.com",
+			bcc: "me@x.com",
+			preventThreading: false,
+		},
 		...h.opts,
 	});
 	const m = transport.getLastEmail()!;
 	assertEquals([m.html, m.replyTo, m.bcc], ["<p>A</p>", "r@x.com", "me@x.com"]);
-	assertEquals(m.providerOptions, undefined); // preventThreading is off
+	assertEquals(m.providerOptions, undefined); // only an explicit false turns it off
 });
 
 Deno.test("runPlan: preventThreading → fresh References + X-Entity-Ref-ID on every send", async () => {
@@ -211,6 +216,16 @@ Deno.test("runPlan: preventThreading → fresh References + X-Entity-Ref-ID on e
 	});
 	const po = bare.getLastEmail()!.providerOptions as ThreadOptions;
 	assertEquals(po.references, `<${po.headers["X-Entity-Ref-ID"]}@mail.example.org>`);
+
+	// Omitted is on — the default.
+	const omitted = createMockTransport();
+	const dflt = fixture("EMAIL,NAME\na@x.com,A\n");
+	await runPlan(dflt.plan, dflt.campaign.templates, {
+		transport: omitted,
+		settings: SETTINGS,
+		...harness().opts,
+	});
+	assertEquals(typeof omitted.getLastEmail()!.providerOptions, "object");
 });
 
 Deno.test("runPlan: a failing send is logged as error and the run continues", async () => {

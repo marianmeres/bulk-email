@@ -50,7 +50,8 @@ src/
                   PREVENT_THREADING)
   plan.ts         planCampaign — statuses pending|retry|sent|gave-up|data-error|unknown
   run.ts          runPlan (serial loop), selectQueue, jitter, defaultSleep; PREVENT_THREADING
-                  headers are made per send here, not in renderEmail (which stays pure)
+                  headers (on unless preventThreading === false) are made per send here, not
+                  in renderEmail (which stays pure)
   campaign-fs.ts  Deno: loadCampaign, loadLedger, createLedgerAppender, loadCampaignEnv, CAMPAIGN_FILES
   cli.ts          Deno: runCli — send | preview | status | verify | help | version
   mod.ts          npm entry (core)      main.ts  JSR entry (core + fs + CLI guard)

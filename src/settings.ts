@@ -11,7 +11,7 @@
  * | `BCC`               | `bcc`                          | —        |
  * | `DELAY_MS`          | `delayMs` (integer ≥ 0)        | `10000`  |
  * | `MAX_ATTEMPTS`      | `maxAttempts` (integer ≥ 1)    | `3`      |
- * | `PREVENT_THREADING` | `preventThreading` (boolean)   | off      |
+ * | `PREVENT_THREADING` | `preventThreading` (boolean)   | `true`   |
  *
  * @module
  */
@@ -113,9 +113,9 @@ export function resolveCampaignSettings(
 	if (replyTo !== undefined) settings.replyTo = replyTo;
 	const bcc = nonBlank(overrides.bcc) ?? nonBlank(env("BCC"));
 	if (bcc !== undefined) settings.bcc = bcc;
-	const preventThreading =
+	settings.preventThreading =
 		parseBoolValue(overrides.preventThreading, "preventThreading") ??
-			parseBoolValue(env("PREVENT_THREADING"), "PREVENT_THREADING");
-	if (preventThreading) settings.preventThreading = true;
+			parseBoolValue(env("PREVENT_THREADING"), "PREVENT_THREADING") ??
+			DEFAULT_SETTINGS.preventThreading;
 	return settings;
 }

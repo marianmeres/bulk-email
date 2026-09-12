@@ -194,7 +194,11 @@ Deno.test("cli preview: first row by default, --to, json, placeholder sender", a
 		assertStringIncludes(text, "Status:   pending");
 		assertStringIncludes(text, "Dear Alice,");
 		assertStringIncludes(text, "--- html (12 chars) ---\n<b>Alice</b>");
-		assertEquals(text.includes("Headers:"), false);
+		// Preventing threading is the default.
+		assertStringIncludes(
+			text,
+			"Headers:  unique References + X-Entity-Ref-ID per send (no Gmail threading)",
+		);
 
 		await Deno.writeTextFile(
 			join(dir, ".env"),
@@ -209,7 +213,7 @@ Deno.test("cli preview: first row by default, --to, json, placeholder sender", a
 		assertStringIncludes(text, "Bcc:      me@x.com");
 		assertStringIncludes(
 			text,
-			"Headers:  unique References + X-Entity-Ref-ID per send (PREVENT_THREADING)",
+			"Headers:  unique References + X-Entity-Ref-ID per send (no Gmail threading)",
 		);
 
 		h = makeIo();
@@ -221,6 +225,21 @@ Deno.test("cli preview: first row by default, --to, json, placeholder sender", a
 		assertEquals(j.message.subject, "Hello Carol");
 		assertEquals(j.status, "pending");
 		assertEquals(j.preventThreading, true);
+
+		// ... and PREVENT_THREADING=false says so, in both output shapes.
+		await Deno.writeTextFile(
+			join(dir, ".env"),
+			"SMTP_FROM=Me <me@x.com>\nPREVENT_THREADING=false\n",
+		);
+		h = makeIo();
+		assertEquals(await runCli(["preview", dir], h.io), 0);
+		assertStringIncludes(
+			h.out.join("\n"),
+			"Headers:  none added (PREVENT_THREADING=false — Gmail may thread sends)",
+		);
+		h = makeIo();
+		assertEquals(await runCli(["preview", dir, "--json"], h.io), 0);
+		assertEquals(JSON.parse(h.out[0]).preventThreading, false);
 
 		h = makeIo();
 		assertEquals(await runCli(["preview", dir, "--to", "zz@x.com"], h.io), 2);

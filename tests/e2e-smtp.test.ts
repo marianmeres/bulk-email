@@ -30,6 +30,7 @@ Deno.test({
 				"BCC=copy@test.local",
 				"DELAY_MS=0",
 				"MAX_ATTEMPTS=2",
+				"PREVENT_THREADING=false",
 				"",
 			].join("\n"),
 			recipients: "EMAIL,NAME\nalice@test.local,Alice\nbob@test.local,Bob\n",
@@ -64,7 +65,7 @@ Deno.test({
 			assertStringIncludes(m.data, "Dear Alice,");
 			assertStringIncludes(m.data, "<p>Hi <b>Alice</b></p>");
 			assertEquals(m.data.includes("Bcc:"), false); // BCC must not leak into headers
-			// PREVENT_THREADING is off: no threading headers.
+			// PREVENT_THREADING=false: no threading headers.
 			assertEquals(/^(References|X-Entity-Ref-ID):/im.test(m.data), false);
 
 			let ledger = (await readLedgerFile(dir)).trim().split("\n").map((l) =>

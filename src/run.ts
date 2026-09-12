@@ -172,7 +172,7 @@ export async function runPlan(
 				...(message.html !== undefined ? { html: message.html } : {}),
 				...(message.replyTo !== undefined ? { replyTo: message.replyTo } : {}),
 				...(message.bcc !== undefined ? { bcc: message.bcc } : {}),
-				...(settings.preventThreading
+				...(settings.preventThreading !== false
 					? { providerOptions: threadBreakingOptions(message.from) }
 					: {}),
 			});

@@ -115,7 +115,8 @@ export interface CampaignSettings {
 	/**
 	 * Give every send a fresh, unique `References` and `X-Entity-Ref-ID` header so
 	 * Gmail does not group same-subject messages from the same sender into one
-	 * conversation. Env `PREVENT_THREADING`. Default off.
+	 * conversation. Env `PREVENT_THREADING`. Default **on** — omitted counts as
+	 * on; only an explicit `false` lets threading happen.
 	 */
 	preventThreading?: boolean;
 	/** Base delay between consecutive sends, in ms. Env `DELAY_MS`. Default `10000`. */
@@ -129,10 +130,11 @@ export interface CampaignSettings {
 
 /** Default {@link CampaignSettings} values. */
 export const DEFAULT_SETTINGS: Readonly<
-	Pick<CampaignSettings, "delayMs" | "maxAttempts">
+	Required<Pick<CampaignSettings, "delayMs" | "maxAttempts" | "preventThreading">>
 > = Object.freeze({
 	delayMs: 10_000,
 	maxAttempts: 3,
+	preventThreading: true,
 });
 
 /**

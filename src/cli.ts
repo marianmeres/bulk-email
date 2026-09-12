@@ -384,7 +384,7 @@ async function handlePreview(parsed: ParsedArgs, io: ResolvedIo): Promise<number
 			ok: true,
 			status: item.status,
 			...(item.emptyVariables ? { emptyVariables: item.emptyVariables } : {}),
-			...(settings.preventThreading ? { preventThreading: true } : {}),
+			preventThreading: settings.preventThreading !== false,
 			message: rendered,
 		}));
 		return 0;
@@ -396,11 +396,11 @@ async function handlePreview(parsed: ParsedArgs, io: ResolvedIo): Promise<number
 	];
 	if (rendered.replyTo) lines.push(`Reply-To: ${rendered.replyTo}`);
 	if (rendered.bcc) lines.push(`Bcc:      ${rendered.bcc}`);
-	if (settings.preventThreading) {
-		lines.push(
-			"Headers:  unique References + X-Entity-Ref-ID per send (PREVENT_THREADING)",
-		);
-	}
+	lines.push(
+		settings.preventThreading !== false
+			? "Headers:  unique References + X-Entity-Ref-ID per send (no Gmail threading)"
+			: "Headers:  none added (PREVENT_THREADING=false — Gmail may thread sends)",
+	);
 	lines.push(`Subject:  ${rendered.subject}`);
 	lines.push(
 		`Status:   ${item.status}${
