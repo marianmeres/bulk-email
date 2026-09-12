@@ -64,4 +64,27 @@ Deno.test("resolveCampaignSettings: malformed → ConfigError", () => {
 		ConfigError,
 		"--delay",
 	);
+	assertThrows(
+		() => resolveCampaignSettings(envFrom({ PREVENT_THREADING: "maybe" })),
+		ConfigError,
+		"PREVENT_THREADING",
+	);
+});
+
+Deno.test("resolveCampaignSettings: PREVENT_THREADING is boolean-ish, present only when on", () => {
+	const resolve = (value: string, override?: boolean | string) =>
+		resolveCampaignSettings(
+			envFrom({ PREVENT_THREADING: value }),
+			override === undefined ? {} : { preventThreading: override },
+		);
+	for (const on of ["true", " TRUE ", "1", "yes", "on"]) {
+		assertEquals(resolve(on).preventThreading, true, on);
+	}
+	for (const off of ["false", "0", "no", "off", "", " "]) {
+		assertEquals("preventThreading" in resolve(off), false, off);
+	}
+	// Overrides win in both directions; a blank override falls through to env.
+	assertEquals("preventThreading" in resolve("true", false), false);
+	assertEquals(resolve("false", "yes").preventThreading, true);
+	assertEquals(resolve("on", " ").preventThreading, true);
 });

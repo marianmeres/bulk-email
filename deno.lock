@@ -4,6 +4,7 @@
     "jsr:@marianmeres/cli-status-line@0.2": "0.2.0",
     "jsr:@marianmeres/interpolate@^1.3.0": "1.3.0",
     "jsr:@marianmeres/npmbuild@^1.16.0": "1.16.0",
+    "jsr:@marianmeres/parse-boolean@^2.1.0": "2.1.0",
     "jsr:@marianmeres/parse-csv@^1.3.0": "1.3.0",
     "jsr:@marianmeres/release@*": "2.0.0",
     "jsr:@marianmeres/send-email@^1.1.0": "1.1.0",
@@ -39,6 +40,9 @@
         "jsr:@std/fs@^1.0.23",
         "jsr:@std/path@^1.1.4"
       ]
+    },
+    "@marianmeres/parse-boolean@2.1.0": {
+      "integrity": "c9abbfb4c8e7baf013d5b20a1bbfcdd8a488e29c6bd9ab92dce0e375ddffd23f"
     },
     "@marianmeres/parse-csv@1.3.0": {
       "integrity": "02dc5e28a7ed6fd2565859e92ec0d110875eece73b177b69727505879c004a56"
@@ -104,6 +108,7 @@
       "jsr:@marianmeres/cli-status-line@0.2",
       "jsr:@marianmeres/interpolate@^1.3.0",
       "jsr:@marianmeres/npmbuild@^1.16.0",
+      "jsr:@marianmeres/parse-boolean@^2.1.0",
       "jsr:@marianmeres/parse-csv@^1.3.0",
       "jsr:@marianmeres/send-email@^1.1.0",
       "jsr:@std/assert@^1.0.19",

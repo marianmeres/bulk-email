@@ -51,7 +51,8 @@ npm install @marianmeres/bulk-email      # npm: runtime-agnostic core only
 
 ```
 2026-09-outreach/
-  .env              SMTP_* + SMTP_FROM, optionally SMTP_REPLY_TO, BCC, DELAY_MS, MAX_ATTEMPTS
+  .env              SMTP_* + SMTP_FROM, optionally SMTP_REPLY_TO, BCC, DELAY_MS,
+                    MAX_ATTEMPTS, PREVENT_THREADING
   subject.txt       Following up on our call about ${TOPIC}
   body.txt          Dear ${TITLE:-Mx.} ${NAME}, thank you for taking the time to talk ${WHEN}. …
   body.html         (optional) HTML alternative, same variables
@@ -124,14 +125,15 @@ usage/config error. See [API.md](API.md#cli) for every flag.
 
 Read from `<dir>/.env` (or `--env-file`), overridden by the process env.
 
-| Variable        | Required | Notes                                                                                                                                                                                                           |
-| --------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `SMTP_HOST`     | to send  | SMTP server. Plus `SMTP_PORT` (587), `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `SMTP_SERVERNAME`, `SMTP_TLS_REJECT_UNAUTHORIZED`, timeouts — exactly as in [send-email](https://jsr.io/@marianmeres/send-email). |
-| `SMTP_FROM`     | to send  | Sender, e.g. `Name <addr@example.com>`.                                                                                                                                                                         |
-| `SMTP_REPLY_TO` | no       | Reply-To header.                                                                                                                                                                                                |
-| `BCC`           | no       | Added to every message — e.g. yourself, for a copy.                                                                                                                                                             |
-| `DELAY_MS`      | no       | Pause between sends, ± 20 % jitter. Default `10000`.                                                                                                                                                            |
-| `MAX_ATTEMPTS`  | no       | Failed attempts before giving up on a recipient. Default `3`.                                                                                                                                                   |
+| Variable            | Required | Notes                                                                                                                                                                                                                                       |
+| ------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SMTP_HOST`         | to send  | SMTP server. Plus `SMTP_PORT` (587), `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `SMTP_SERVERNAME`, `SMTP_TLS_REJECT_UNAUTHORIZED`, timeouts — exactly as in [send-email](https://jsr.io/@marianmeres/send-email).                             |
+| `SMTP_FROM`         | to send  | Sender, e.g. `Name <addr@example.com>`.                                                                                                                                                                                                     |
+| `SMTP_REPLY_TO`     | no       | Reply-To header.                                                                                                                                                                                                                            |
+| `BCC`               | no       | Added to every message — e.g. yourself, for a copy.                                                                                                                                                                                         |
+| `DELAY_MS`          | no       | Pause between sends, ± 20 % jitter. Default `10000`.                                                                                                                                                                                        |
+| `MAX_ATTEMPTS`      | no       | Failed attempts before giving up on a recipient. Default `3`.                                                                                                                                                                               |
+| `PREVENT_THREADING` | no       | `true` gives every message a unique `References` and `X-Entity-Ref-ID` header, so Gmail does not group same-subject messages from you into one conversation (your `BCC` copies, a test send to several of your own addresses). Default off. |
 
 ## Library usage
 

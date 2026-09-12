@@ -1,4 +1,4 @@
-import { assertEquals, assertRejects, assertThrows } from "@std/assert";
+import { assertEquals, assertMatch, assertRejects, assertThrows } from "@std/assert";
 import { createMockTransport } from "@marianmeres/send-email";
 import { buildLedgerState } from "../src/ledger.ts";
 import { planCampaign } from "../src/plan.ts";
@@ -180,6 +180,37 @@ Deno.test("runPlan: html / replyTo / bcc are forwarded when present", async () =
 	});
 	const m = transport.getLastEmail()!;
 	assertEquals([m.html, m.replyTo, m.bcc], ["<p>A</p>", "r@x.com", "me@x.com"]);
+	assertEquals(m.providerOptions, undefined); // preventThreading is off
+});
+
+Deno.test("runPlan: preventThreading → fresh References + X-Entity-Ref-ID on every send", async () => {
+	type ThreadOptions = { references: string; headers: Record<string, string> };
+	const { campaign, plan } = fixture();
+	const transport = createMockTransport();
+	await runPlan(plan, campaign.templates, {
+		transport,
+		settings: { ...SETTINGS, preventThreading: true },
+		...harness().opts,
+	});
+	const sent = transport.sentEmails.map((m) => m.providerOptions as ThreadOptions);
+	assertEquals(sent.length, 3);
+	for (const po of sent) {
+		const id = po.headers["X-Entity-Ref-ID"];
+		assertMatch(id, /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+		assertEquals(po.references, `<${id}@x.com>`); // domain of "Me <me@x.com>"
+	}
+	assertEquals(new Set(sent.map((po) => po.references)).size, 3);
+
+	// A bare sender address works too.
+	const bare = createMockTransport();
+	const single = fixture("EMAIL,NAME\na@x.com,A\n");
+	await runPlan(single.plan, single.campaign.templates, {
+		transport: bare,
+		settings: { ...SETTINGS, from: "me@mail.example.org", preventThreading: true },
+		...harness().opts,
+	});
+	const po = bare.getLastEmail()!.providerOptions as ThreadOptions;
+	assertEquals(po.references, `<${po.headers["X-Entity-Ref-ID"]}@mail.example.org>`);
 });
 
 Deno.test("runPlan: a failing send is logged as error and the run continues", async () => {

@@ -34,6 +34,7 @@ log.jsonl      ──loadLedgerState──▶ LedgerState ──┘        ▲  
   (`runCli(args, io)` — all side effects injectable via `CliIo`), `main.ts`.
 - **Deps:** `@marianmeres/send-email` (transport + `SMTP_*` env vocabulary),
   `@marianmeres/interpolate` (templating), `@marianmeres/parse-csv` (CSV),
+  `@marianmeres/parse-boolean` (boolean settings, strict mode),
   `@marianmeres/cli-status-line` (CLI only; Deno-only, JSR-only).
 
 ## Project Structure
@@ -45,9 +46,11 @@ src/
   template.ts     extract*Variables, assertStrictVariablesHaveColumns,
                   findEmptyStrictVariables, renderEmail
   ledger.ts       parse/serialize JSONL, buildLedgerState (sent › dangling › errors)
-  settings.ts     resolveCampaignSettings (SMTP_FROM, SMTP_REPLY_TO, BCC, DELAY_MS, MAX_ATTEMPTS)
+  settings.ts     resolveCampaignSettings (SMTP_FROM, SMTP_REPLY_TO, BCC, DELAY_MS, MAX_ATTEMPTS,
+                  PREVENT_THREADING)
   plan.ts         planCampaign — statuses pending|retry|sent|gave-up|data-error|unknown
-  run.ts          runPlan (serial loop), selectQueue, jitter, defaultSleep
+  run.ts          runPlan (serial loop), selectQueue, jitter, defaultSleep; PREVENT_THREADING
+                  headers are made per send here, not in renderEmail (which stays pure)
   campaign-fs.ts  Deno: loadCampaign, loadLedger, createLedgerAppender, loadCampaignEnv, CAMPAIGN_FILES
   cli.ts          Deno: runCli — send | preview | status | verify | help | version
   mod.ts          npm entry (core)      main.ts  JSR entry (core + fs + CLI guard)

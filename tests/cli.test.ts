@@ -194,10 +194,11 @@ Deno.test("cli preview: first row by default, --to, json, placeholder sender", a
 		assertStringIncludes(text, "Status:   pending");
 		assertStringIncludes(text, "Dear Alice,");
 		assertStringIncludes(text, "--- html (12 chars) ---\n<b>Alice</b>");
+		assertEquals(text.includes("Headers:"), false);
 
 		await Deno.writeTextFile(
 			join(dir, ".env"),
-			"SMTP_FROM=Me <me@x.com>\nSMTP_REPLY_TO=r@x.com\nBCC=me@x.com\n",
+			"SMTP_FROM=Me <me@x.com>\nSMTP_REPLY_TO=r@x.com\nBCC=me@x.com\nPREVENT_THREADING=true\n",
 		);
 		h = makeIo();
 		assertEquals(await runCli(["preview", dir, "--to", "B@x.com"], h.io), 0);
@@ -206,6 +207,10 @@ Deno.test("cli preview: first row by default, --to, json, placeholder sender", a
 		assertStringIncludes(text, "From:     Me <me@x.com>");
 		assertStringIncludes(text, "Reply-To: r@x.com");
 		assertStringIncludes(text, "Bcc:      me@x.com");
+		assertStringIncludes(
+			text,
+			"Headers:  unique References + X-Entity-Ref-ID per send (PREVENT_THREADING)",
+		);
 
 		h = makeIo();
 		assertEquals(
@@ -215,6 +220,7 @@ Deno.test("cli preview: first row by default, --to, json, placeholder sender", a
 		const j = JSON.parse(h.out[0]);
 		assertEquals(j.message.subject, "Hello Carol");
 		assertEquals(j.status, "pending");
+		assertEquals(j.preventThreading, true);
 
 		h = makeIo();
 		assertEquals(await runCli(["preview", dir, "--to", "zz@x.com"], h.io), 2);
@@ -404,6 +410,9 @@ Deno.test("cli send: config problems fail before the prompt and before any trans
 		env: SMTP_ENV,
 		recipients: "EMAIL,NAME\na@x.com,\nb@x.com,Bob\n",
 	});
+	const badBool = await makeCampaignDir({
+		env: SMTP_ENV + "PREVENT_THREADING=maybe\n",
+	});
 	try {
 		let h = makeIo({ isInteractive: () => true });
 		assertEquals(await runCli(["send", noFrom.dir], h.io), 2);
@@ -415,6 +424,11 @@ Deno.test("cli send: config problems fail before the prompt and before any trans
 		assertStringIncludes(h.err[0], "SMTP_HOST");
 		assertEquals(h.confirms, []);
 
+		h = makeIo({ isInteractive: () => true });
+		assertEquals(await runCli(["send", badBool.dir], h.io), 2);
+		assertStringIncludes(h.err[0], "PREVENT_THREADING");
+		assertEquals(h.confirms, []);
+
 		// data-error rows are reported and excluded; the rest goes out.
 		h = makeIo();
 		assertEquals(await runCli(["send", blank.dir, "-y"], h.io), 0);
@@ -424,6 +438,7 @@ Deno.test("cli send: config problems fail before the prompt and before any trans
 		await noFrom.cleanup();
 		await noHost.cleanup();
 		await blank.cleanup();
+		await badBool.cleanup();
 	}
 });
 

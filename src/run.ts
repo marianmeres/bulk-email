@@ -52,6 +52,18 @@ export function jitter(baseMs: number, random: () => number = Math.random): numb
 }
 
 /**
+ * Per-send provider options that keep Gmail from grouping same-subject messages
+ * from one sender into a conversation: a `References` value that matches no real
+ * message (Google's documented recipe) plus a unique `X-Entity-Ref-ID` (the widely
+ * used undocumented one). The id's domain is the sender's.
+ */
+function threadBreakingOptions(from: string): Record<string, unknown> {
+	const id = crypto.randomUUID();
+	const domain = /@([^\s<>@]+)>?\s*$/.exec(from)?.[1] ?? "localhost";
+	return { references: `<${id}@${domain}>`, headers: { "X-Entity-Ref-ID": id } };
+}
+
+/**
  * Narrows the plan's queue to what this run should send.
  *
  * @throws {ConfigError} when an `only` address is not a recipient of the campaign.
@@ -160,6 +172,9 @@ export async function runPlan(
 				...(message.html !== undefined ? { html: message.html } : {}),
 				...(message.replyTo !== undefined ? { replyTo: message.replyTo } : {}),
 				...(message.bcc !== undefined ? { bcc: message.bcc } : {}),
+				...(settings.preventThreading
+					? { providerOptions: threadBreakingOptions(message.from) }
+					: {}),
 			});
 			entry = {
 				ts: now().toISOString(),

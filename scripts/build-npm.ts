@@ -21,7 +21,12 @@ await npmBuild({
 		"run.ts",
 	],
 	dependencies: versionizeDeps(
-		["@marianmeres/send-email", "@marianmeres/interpolate", "@marianmeres/parse-csv"],
+		[
+			"@marianmeres/send-email",
+			"@marianmeres/interpolate",
+			"@marianmeres/parse-csv",
+			"@marianmeres/parse-boolean",
+		],
 		denoJson,
 	),
 });

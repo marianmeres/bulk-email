@@ -4,17 +4,19 @@
  * Pure, like `resolveSmtpOptions()` in `@marianmeres/send-email`: the caller
  * supplies the `key → value` lookup; nothing ambient is read here.
  *
- * | Key             | Maps to                        | Default  |
- * | --------------- | ------------------------------ | -------- |
- * | `SMTP_FROM`     | `from` (required to send)      | —        |
- * | `SMTP_REPLY_TO` | `replyTo`                      | —        |
- * | `BCC`           | `bcc`                          | —        |
- * | `DELAY_MS`      | `delayMs` (integer ≥ 0)        | `10000`  |
- * | `MAX_ATTEMPTS`  | `maxAttempts` (integer ≥ 1)    | `3`      |
+ * | Key                 | Maps to                        | Default  |
+ * | ------------------- | ------------------------------ | -------- |
+ * | `SMTP_FROM`         | `from` (required to send)      | —        |
+ * | `SMTP_REPLY_TO`     | `replyTo`                      | —        |
+ * | `BCC`               | `bcc`                          | —        |
+ * | `DELAY_MS`          | `delayMs` (integer ≥ 0)        | `10000`  |
+ * | `MAX_ATTEMPTS`      | `maxAttempts` (integer ≥ 1)    | `3`      |
+ * | `PREVENT_THREADING` | `preventThreading` (boolean)   | off      |
  *
  * @module
  */
 
+import { parseBoolean } from "@marianmeres/parse-boolean";
 import type { EnvGetter } from "@marianmeres/send-email";
 import { type CampaignSettings, ConfigError, DEFAULT_SETTINGS } from "./types.ts";
 
@@ -49,6 +51,24 @@ function nonBlank(value: string | undefined): string | undefined {
 }
 
 /**
+ * Boolean via `parseBoolean` in strict mode (`true`/`yes`/`on`/`1`,
+ * `false`/`no`/`off`/`0`, …), or `undefined` for blank/unset.
+ */
+function parseBoolValue(
+	value: string | boolean | undefined,
+	name: string,
+): boolean | undefined {
+	if (value === undefined || (typeof value === "string" && value.trim() === "")) {
+		return undefined;
+	}
+	try {
+		return parseBoolean(value, { strict: true });
+	} catch {
+		throw new ConfigError(`${name} must be true or false, got "${value}"`);
+	}
+}
+
+/**
  * Overrides applied on top of env values (typically CLI flags). String
  * values are parsed exactly like env values.
  */
@@ -59,6 +79,8 @@ export interface SettingsOverrides {
 	replyTo?: string;
 	/** BCC on every message. */
 	bcc?: string;
+	/** Unique threading headers per send; a string is parsed like `PREVENT_THREADING`. */
+	preventThreading?: boolean | string;
 	/** Base delay in ms (integer ≥ 0); a string is parsed like `DELAY_MS`. */
 	delayMs?: number | string;
 	/** Attempt limit (integer ≥ 1); a string is parsed like `MAX_ATTEMPTS`. */
@@ -70,7 +92,8 @@ export interface SettingsOverrides {
  *
  * @param env - `key → value` lookup (e.g. process env merged with `.env`).
  * @param overrides - Values that win over env (CLI flags).
- * @throws {ConfigError} on a malformed `DELAY_MS` / `MAX_ATTEMPTS`.
+ * @throws {ConfigError} on a malformed `DELAY_MS` / `MAX_ATTEMPTS` /
+ * `PREVENT_THREADING`.
  */
 export function resolveCampaignSettings(
 	env: EnvGetter,
@@ -90,5 +113,9 @@ export function resolveCampaignSettings(
 	if (replyTo !== undefined) settings.replyTo = replyTo;
 	const bcc = nonBlank(overrides.bcc) ?? nonBlank(env("BCC"));
 	if (bcc !== undefined) settings.bcc = bcc;
+	const preventThreading =
+		parseBoolValue(overrides.preventThreading, "preventThreading") ??
+			parseBoolValue(env("PREVENT_THREADING"), "PREVENT_THREADING");
+	if (preventThreading) settings.preventThreading = true;
 	return settings;
 }

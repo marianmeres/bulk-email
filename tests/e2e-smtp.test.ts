@@ -3,7 +3,12 @@
  * `@marianmeres/send-email`, a fake local SMTP server. No network beyond
  * localhost, no credentials.
  */
-import { assertEquals, assertStringIncludes } from "@std/assert";
+import {
+	assertEquals,
+	assertMatch,
+	assertNotEquals,
+	assertStringIncludes,
+} from "@std/assert";
 import { runCli } from "../src/cli.ts";
 import { startFakeSmtp } from "./_fake-smtp.ts";
 import { makeCampaignDir, readLedgerFile } from "./_fixture.ts";
@@ -59,6 +64,8 @@ Deno.test({
 			assertStringIncludes(m.data, "Dear Alice,");
 			assertStringIncludes(m.data, "<p>Hi <b>Alice</b></p>");
 			assertEquals(m.data.includes("Bcc:"), false); // BCC must not leak into headers
+			// PREVENT_THREADING is off: no threading headers.
+			assertEquals(/^(References|X-Entity-Ref-ID):/im.test(m.data), false);
 
 			let ledger = (await readLedgerFile(dir)).trim().split("\n").map((l) =>
 				JSON.parse(l)
@@ -100,6 +107,53 @@ Deno.test({
 			out.length = 0;
 			assertEquals(await runCli(["verify", dir], io), 0);
 			assertStringIncludes(out[0], "connection + auth OK");
+		} finally {
+			await cleanup();
+			await smtp.close();
+		}
+	},
+});
+
+Deno.test({
+	name: "e2e: PREVENT_THREADING puts a fresh References + X-Entity-Ref-ID on the wire",
+	sanitizeOps: false,
+	sanitizeResources: false,
+	fn: async () => {
+		const smtp = startFakeSmtp();
+		const { dir, cleanup } = await makeCampaignDir({
+			env: [
+				"SMTP_HOST=127.0.0.1",
+				`SMTP_PORT=${smtp.port}`,
+				"SMTP_SECURE=false",
+				"SMTP_FROM=Bulk Test <bulk@test.local>",
+				"DELAY_MS=0",
+				"PREVENT_THREADING=true",
+				"",
+			].join("\n"),
+			subject: "The same subject for everyone",
+			recipients: "EMAIL,NAME\nalice@test.local,Alice\nbob@test.local,Bob\n",
+		});
+		const err: string[] = [];
+		const io = {
+			out: () => {},
+			err: (l: string) => void err.push(l),
+			env: () => undefined,
+			onInterrupt: () => () => {},
+		};
+		try {
+			assertEquals(await runCli(["send", dir, "-y"], io), 0, err.join("\n"));
+			assertEquals(smtp.messages.length, 2);
+			const ids = smtp.messages.map((m) => {
+				// Header names are case-insensitive; nodemailer may normalize their case.
+				const id = /^X-Entity-Ref-ID: ([0-9a-f-]{36})$/im.exec(m.data)?.[1];
+				assertEquals(typeof id, "string", m.data);
+				assertMatch(
+					m.data,
+					new RegExp(`^References: <${id}@test\\.local>$`, "im"),
+				);
+				return id;
+			});
+			assertNotEquals(ids[0], ids[1]);
 		} finally {
 			await cleanup();
 			await smtp.close();

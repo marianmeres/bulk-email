@@ -154,7 +154,7 @@ Environment (process env wins over the .env file):
   SMTP_HOST (required to send), SMTP_PORT, SMTP_SECURE, SMTP_USER, SMTP_PASS,
   SMTP_FROM (required to send), SMTP_REPLY_TO, SMTP_SERVERNAME,
   SMTP_TLS_REJECT_UNAUTHORIZED, SMTP_CONNECTION_TIMEOUT_MS, SMTP_SOCKET_TIMEOUT_MS,
-  BCC, DELAY_MS, MAX_ATTEMPTS.
+  BCC, DELAY_MS, MAX_ATTEMPTS, PREVENT_THREADING.
 
 Exit codes: 0 ok, 1 runtime failure (including any failed send), 2 usage/config error.
 `.trim();
@@ -384,6 +384,7 @@ async function handlePreview(parsed: ParsedArgs, io: ResolvedIo): Promise<number
 			ok: true,
 			status: item.status,
 			...(item.emptyVariables ? { emptyVariables: item.emptyVariables } : {}),
+			...(settings.preventThreading ? { preventThreading: true } : {}),
 			message: rendered,
 		}));
 		return 0;
@@ -395,6 +396,11 @@ async function handlePreview(parsed: ParsedArgs, io: ResolvedIo): Promise<number
 	];
 	if (rendered.replyTo) lines.push(`Reply-To: ${rendered.replyTo}`);
 	if (rendered.bcc) lines.push(`Bcc:      ${rendered.bcc}`);
+	if (settings.preventThreading) {
+		lines.push(
+			"Headers:  unique References + X-Entity-Ref-ID per send (PREVENT_THREADING)",
+		);
+	}
 	lines.push(`Subject:  ${rendered.subject}`);
 	lines.push(
 		`Status:   ${item.status}${

@@ -112,6 +112,12 @@ export interface CampaignSettings {
 	replyTo?: string;
 	/** BCC added to every message (e.g. yourself, for a copy). Env `BCC`. */
 	bcc?: string;
+	/**
+	 * Give every send a fresh, unique `References` and `X-Entity-Ref-ID` header so
+	 * Gmail does not group same-subject messages from the same sender into one
+	 * conversation. Env `PREVENT_THREADING`. Default off.
+	 */
+	preventThreading?: boolean;
 	/** Base delay between consecutive sends, in ms. Env `DELAY_MS`. Default `10000`. */
 	delayMs: number;
 	/**

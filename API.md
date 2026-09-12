@@ -138,16 +138,21 @@ Pure mapping from env-shaped values to [`CampaignSettings`](#campaignsettings).
 - `overrides` ([`SettingsOverrides`](#settingsoverrides), optional) — win over
   env; strings are parsed like env values.
 
-| Key             | Field         | Default |
-| --------------- | ------------- | ------- |
-| `SMTP_FROM`     | `from`        | —       |
-| `SMTP_REPLY_TO` | `replyTo`     | —       |
-| `BCC`           | `bcc`         | —       |
-| `DELAY_MS`      | `delayMs`     | `10000` |
-| `MAX_ATTEMPTS`  | `maxAttempts` | `3`     |
+| Key                 | Field              | Default |
+| ------------------- | ------------------ | ------- |
+| `SMTP_FROM`         | `from`             | —       |
+| `SMTP_REPLY_TO`     | `replyTo`          | —       |
+| `BCC`               | `bcc`              | —       |
+| `DELAY_MS`          | `delayMs`          | `10000` |
+| `MAX_ATTEMPTS`      | `maxAttempts`      | `3`     |
+| `PREVENT_THREADING` | `preventThreading` | off     |
 
-Blank values count as unset. **Throws** `ConfigError` on a non-integer
-`DELAY_MS` (must be ≥ 0) or `MAX_ATTEMPTS` (must be ≥ 1).
+Blank values count as unset. `PREVENT_THREADING` is read by
+[`@marianmeres/parse-boolean`](https://jsr.io/@marianmeres/parse-boolean) in
+strict mode (`true`/`yes`/`on`/`1`, `false`/`no`/`off`/`0`, …);
+`preventThreading` is present only when on. **Throws** `ConfigError` on a
+non-integer `DELAY_MS` (must be ≥ 0) or `MAX_ATTEMPTS` (must be ≥ 1), or a
+`PREVENT_THREADING` value parse-boolean does not recognize.
 
 ---
 
@@ -204,6 +209,14 @@ The serial send loop.
    run or an empty queue). A throw here aborts with nothing written.
 3. Per recipient: append `sending` → `transport.send()` → append `sent` or
    `error` → emit event → wait `delayMs ± 20 %` unless last / aborted / dry run.
+
+**Threading:** with `settings.preventThreading`, every `transport.send()` also
+gets `providerOptions: { references: "<uuid@sender-domain>", headers: { "X-Entity-Ref-ID": uuid } }`,
+with a fresh UUID per send (a retry gets new values). A `References` value that
+matches no real message is Google's documented way to keep same-subject messages
+out of one Gmail conversation; `X-Entity-Ref-ID` is the widely used undocumented
+equivalent. The nodemailer transport of `@marianmeres/send-email` forwards both;
+a transport that ignores `providerOptions` sends neither.
 
 A send that throws is logged as `error` and the loop **continues**. If
 `appendLedger` throws, the run aborts; a `sending` entry may be left dangling,
@@ -347,6 +360,7 @@ interface CampaignSettings {
 	from?: string; // required to send
 	replyTo?: string;
 	bcc?: string;
+	preventThreading?: boolean; // unique References + X-Entity-Ref-ID per send
 	delayMs: number; // default 10000
 	maxAttempts: number; // default 3
 }
@@ -359,6 +373,7 @@ interface SettingsOverrides {
 	from?: string;
 	replyTo?: string;
 	bcc?: string;
+	preventThreading?: boolean | string;
 	delayMs?: number | string;
 	maxAttempts?: number | string;
 }
@@ -576,10 +591,10 @@ calls `Deno.exit` except through the injectable `exit` on a second Ctrl-C).
 
 ### `preview` flags
 
-| Flag          | Effect                                                    |
-| ------------- | --------------------------------------------------------- |
-| `--to <addr>` | Recipient to render (default: the first CSV row).         |
-| `--json`      | `{ ok, status, emptyVariables?, message: RenderedEmail }` |
+| Flag          | Effect                                                                       |
+| ------------- | ---------------------------------------------------------------------------- |
+| `--to <addr>` | Recipient to render (default: the first CSV row).                            |
+| `--json`      | `{ ok, status, emptyVariables?, preventThreading?, message: RenderedEmail }` |
 
 ### Behaviour
 
