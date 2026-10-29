@@ -1,16 +1,16 @@
 {
   "version": "5",
   "specifiers": {
-    "jsr:@marianmeres/cli-status-line@0.2": "0.2.0",
+    "jsr:@marianmeres/cli-status-line@0.3": "0.3.0",
     "jsr:@marianmeres/interpolate@^1.3.0": "1.3.0",
     "jsr:@marianmeres/npmbuild@^1.16.0": "1.16.0",
     "jsr:@marianmeres/parse-boolean@^2.1.0": "2.1.0",
     "jsr:@marianmeres/parse-csv@^1.3.0": "1.3.0",
     "jsr:@marianmeres/release@*": "2.0.0",
-    "jsr:@marianmeres/send-email@^1.1.0": "1.1.0",
+    "jsr:@marianmeres/send-email@^1.2.0": "1.2.0",
     "jsr:@std/assert@^1.0.19": "1.0.19",
     "jsr:@std/cli@^1.0.32": "1.0.32",
-    "jsr:@std/collections@^1.1.7": "1.3.0",
+    "jsr:@std/collections@^1.1.7": "1.4.0",
     "jsr:@std/dotenv@~0.225.8": "0.225.8",
     "jsr:@std/fmt@^1.0.10": "1.0.10",
     "jsr:@std/fs@^1.0.23": "1.0.24",
@@ -20,15 +20,11 @@
     "jsr:@std/path@^1.1.4": "1.1.6",
     "jsr:@std/path@^1.1.5": "1.1.6",
     "jsr:@std/path@^1.1.6": "1.1.6",
-    "npm:nodemailer@^9.1.1": "9.1.1"
+    "npm:nodemailer@^10.0.13": "10.2.1"
   },
   "jsr": {
-    "@marianmeres/cli-status-line@0.2.0": {
-      "integrity": "356a2e7f2a6f36104714d9868a9cac04f84f2ddb5ffd786e0765173af16ca39d",
-      "dependencies": [
-        "jsr:@std/cli",
-        "jsr:@std/fmt"
-      ]
+    "@marianmeres/cli-status-line@0.3.0": {
+      "integrity": "064063c1b1eadf6a3c16f03bc46fb16d7b7ca617449d8274b8e47e6c764f98d8"
     },
     "@marianmeres/interpolate@1.3.0": {
       "integrity": "184051af446067f68d05232220b1e25afb78d29299698e4e365e1b469126e006"
@@ -50,8 +46,8 @@
     "@marianmeres/release@2.0.0": {
       "integrity": "a0358067f8500edaa795f22f6f962765a7f20edd6d8869c0793f11ee02fb47c0"
     },
-    "@marianmeres/send-email@1.1.0": {
-      "integrity": "d19dfe81907c40ba73fb8482d4905e9d857097d05d7c6edded60a5a75df001c2",
+    "@marianmeres/send-email@1.2.0": {
+      "integrity": "b7c9db5e34051b05105a304156b391f93526dfe07df541e781136bffbd449296",
       "dependencies": [
         "jsr:@std/cli",
         "jsr:@std/dotenv",
@@ -72,8 +68,8 @@
         "jsr:@std/internal@^1.0.14"
       ]
     },
-    "@std/collections@1.3.0": {
-      "integrity": "eb36b43d784477ea0b476483ac034a14bdd182aff921c812ecf662a1fcef9498"
+    "@std/collections@1.4.0": {
+      "integrity": "bd7f74966e11de11b1f0420b7e8cb7bb381d8af7872b738443b92050db28c9c0"
     },
     "@std/dotenv@0.225.8": {
       "integrity": "27b8c1a9d00cbf938345a5924487c04d9b27bdd7e7bd1983f54bcf76d0a0174a"
@@ -99,18 +95,18 @@
     }
   },
   "npm": {
-    "nodemailer@9.1.1": {
-      "integrity": "sha512-izw9mVKFix6YSnC9eLgV6g1opl9DUlRio9ZNcq+Wu9Ujn2UwF+8Nl0B8nz22kEC+CTZCvinkxwJ0DeFbb6NwcQ=="
+    "nodemailer@10.2.1": {
+      "integrity": "sha512-ZrDNsPFoDMwefNs7sJwrYiEJ/CG4ClJWDZv05iNJsEBWa8GRDry1QJHTJxsuTAY9eDDKjX4k+q3SxslXJOao7w=="
     }
   },
   "workspace": {
     "dependencies": [
-      "jsr:@marianmeres/cli-status-line@0.2",
+      "jsr:@marianmeres/cli-status-line@0.3",
       "jsr:@marianmeres/interpolate@^1.3.0",
       "jsr:@marianmeres/npmbuild@^1.16.0",
       "jsr:@marianmeres/parse-boolean@^2.1.0",
       "jsr:@marianmeres/parse-csv@^1.3.0",
-      "jsr:@marianmeres/send-email@^1.1.0",
+      "jsr:@marianmeres/send-email@^1.2.0",
       "jsr:@std/assert@^1.0.19",
       "jsr:@std/cli@^1.0.32",
       "jsr:@std/dotenv@~0.225.8",
